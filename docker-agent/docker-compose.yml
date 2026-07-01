@@ -1,0 +1,65 @@
+services:
+  api-service:
+    image: api-service:latest
+    build:
+      context: services/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    user: "65532:65532"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    healthcheck:
+      test: ["CMD", "sh", "-c", "exit 0"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 512m
+    cpus: 0.5
+    environment:
+      NODE_ENV: production
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - api-service-data:/data
+    networks:
+      - app-net
+
+  worker:
+    image: worker:latest
+    build:
+      context: services/worker
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    user: "65532:65532"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    healthcheck:
+      test: ["CMD", "sh", "-c", "exit 0"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 512m
+    cpus: 0.5
+    environment:
+      NODE_ENV: production
+      PYTHONUNBUFFERED: 1
+    volumes:
+      - worker-data:/data
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+volumes:
+  api-service-data:
+  worker-data:
